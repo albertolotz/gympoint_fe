@@ -11,7 +11,6 @@ export const Container = styled.div`
   align-items: center;
 
   div {
-    height: 400px;
     width: 300px;
     background-color: #fff;
     border-radius: 4px;
@@ -24,6 +23,7 @@ export const Container = styled.div`
       margin-left: auto;
       margin-right: auto;
     }
+
     strong {
       text-align: center;
       display: flex;
@@ -37,10 +37,20 @@ export const Container = styled.div`
       display: flex;
       flex-direction: column;
       margin-top: 20px;
+
       span {
         margin: 10px 0 5px 0;
         font-size: 12px;
+        color: #750505;
       }
+
+      label {
+        margin: 10px 0 5px 0;
+        font-size: 12px;
+        color: #343030;
+        align-self: flex-start;
+      }
+
       input {
         background: #fff;
         border: 1px solid #ccc;
@@ -66,6 +76,12 @@ export const Container = styled.div`
           background: ${darken(0.05, '#ee4d64')};
         }
       }
+    }
+    small {
+      display: block;
+      text-align: right;
+      font-size: 9px;
+      color: #343030;
     }
   }
 `;
