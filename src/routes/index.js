@@ -9,6 +9,7 @@ import Assistance from '../pages/Assistance';
 import Plans from '../pages/Plans';
 import Registries from '../pages/Registries';
 import Students from '../pages/Students';
+import StudentsEdit from '../pages/Students/EditStudent';
 
 export default function Routes() {
   return (
@@ -20,6 +21,7 @@ export default function Routes() {
       <Route path="/plans" component={Plans} isPrivate />
       <Route path="/registries" component={Registries} isPrivate />
       <Route path="/students" component={Students} isPrivate />
+      <Route path="/studentsedit/:id" component={StudentsEdit} isPrivate />
     </Switch>
   );
 }

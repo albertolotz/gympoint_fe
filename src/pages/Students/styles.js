@@ -51,6 +51,8 @@ export const Content = styled.div`
         height: 30px;
         font-size: 18px;
       }
+
+      }
     }
   }
 `;
@@ -93,11 +95,17 @@ export const DataContainer = styled.div`
         border-top: 1px solid #d9d9d9;
         color: #333;
       }
+      a {
+        padding: 20px 0;
+        color: #333;
+        &:hover {
+          color: #e3346e;
+        }
+      }
       button {
         border: 0;
         background: none;
         margin: 0 25px;
-        font-size: 26px;
         color: #333;
         &:hover {
           color: #e3346e;
