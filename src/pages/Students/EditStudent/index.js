@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { MdCheck, MdNavigateBefore } from 'react-icons/md';
 import { Form, Input } from '@rocketseat/unform';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid, differenceInYears, isPast } from 'date-fns';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import { Container, Content } from './styles';
@@ -48,6 +48,22 @@ export default function EditStudent() {
     loadStudent();
   }, [id]);
 
+  function handeCalculateAge(value) {
+    const inputBirth = value;
+    const lengthInputBirth = inputBirth.length;
+
+    if (
+      lengthInputBirth === 10 &&
+      isValid(new Date(inputBirth)) &&
+      isPast(new Date(inputBirth))
+    ) {
+      const newAge = differenceInYears(new Date(), new Date(inputBirth));
+      document.querySelector('input[name=age]').value = newAge;
+    } else {
+      document.querySelector('input[name=age]').value = 'Invalido';
+    }
+  }
+
   async function handleEdit(data) {
     try {
       await api.put(`students/${id}`, data);
@@ -91,7 +107,11 @@ export default function EditStudent() {
           <div className="dataColun">
             <div className="detals">
               <span className="label">Data Nascimento</span>
-              <Input type="text" name="birth_date" />
+              <Input
+                type="text"
+                name="birth_date"
+                onChange={e => handeCalculateAge(e.target.value)}
+              />
             </div>
             <div className="detals">
               <span className="label">Idade</span>

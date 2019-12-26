@@ -60,11 +60,18 @@ export const Content = styled.div`
     flex-direction: column;
     flex-wrap: wrap;
     width: 50%;
-    span {
+
+    .label {
       color: #333;
       font-size: 18px;
       margin-top: 10px;
     }
+
+    span {
+      color: #9e2906;
+      font-size: 12px;
+    }
+
     input {
       border: 1px solid #666;
       border-radius: 4px;

@@ -12,28 +12,26 @@ export const Content = styled.div`
   justify-content: space-between;
   align-items: center;
 
-  form {
+  div {
     display: flex;
     align-items: center;
     justify-content: center;
 
-    button {
-      width: 150px;
+    a {
+      background-color: #e3346e;
       height: 32px;
-      background: #e3346e;
-      font-weight: bold;
-      color: #fff;
-      border: 0;
+      width: 150px;
+      padding: 6px 10px;
       border-radius: 4px;
       font-size: 16px;
+      font-weight: bold;
+      color: #fff;
       margin-right: 15px;
-      transition: background 0.2s;
-
+      text-align: center;
       &:hover {
         background: ${darken(0.08, '#e3346e')};
       }
     }
-
     div {
       background: #fff;
       border: 1px solid #ccc;
@@ -50,8 +48,6 @@ export const Content = styled.div`
         border: 0;
         height: 30px;
         font-size: 18px;
-      }
-
       }
     }
   }

@@ -32,7 +32,6 @@ export default function Students() {
     async function loadStudents() {
       const response = await api.get('students', { params: { page, q } });
       const pgsApi = response.data.pages;
-
       const countPages = [];
       let pg = 0;
       do {
@@ -91,73 +90,75 @@ export default function Students() {
     }
   }
   return (
-    <Container>
-      <Content>
-        <h1>Gerenciando Alunos</h1>
-        <Form>
-          <button type="button">
-            <MdAdd />
-            CADASTRAR
-          </button>
+    <>
+      <Container>
+        <Content>
+          <h1>Gerenciando Alunos</h1>
           <div>
-            <MdSearch size={16} />
-            <Input
-              onChange={handleSearch}
-              placeholder="Buscar Aluno"
-              type="text"
-              name="search"
-            />
+            <Link to="/studentsadd">
+              <MdAdd />
+              CADASTRAR
+            </Link>
+            <div>
+              <MdSearch size={16} />
+              <Input
+                onChange={handleSearch}
+                placeholder="Buscar Aluno"
+                type="text"
+                name="search"
+              />
+            </div>
           </div>
-        </Form>
-      </Content>
-      <DataContainer>
-        <table>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>e-mail</th>
-              <th>Idade</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {student.map(std => (
-              <tr key={std.id}>
-                <th className="name">{std.name}</th>
-                <th className="email">{std.email}</th>
-                <th className="age">{std.age}</th>
-                <th className="ctrl">
-                  <Link to={`/studentsedit/${std.id}`}>
-                    <MdEdit size={26} />
-                  </Link>
-                  <button onClick={() => handleDelete(std.id)} type="button">
-                    <MdDeleteForever size={26} />
-                  </button>
-                </th>
+        </Content>
+        <DataContainer>
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>e-mail</th>
+                <th>Idade</th>
+                <th>{}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </DataContainer>
-      <PageContainer>
-        <button type="button" onClick={() => handePageDown()}>
-          <MdNavigateBefore />
-        </button>
+            </thead>
+            <tbody>
+              {student.map(std => (
+                <tr key={std.id}>
+                  <th className="name">{std.name}</th>
+                  <th className="email">{std.email}</th>
+                  <th className="age">{std.age}</th>
+                  <th className="ctrl">
+                    <Link to={`/studentsedit/${std.id}`}>
+                      <MdEdit size={26} />
+                    </Link>
+                    <button onClick={() => handleDelete(std.id)} type="button">
+                      <MdDeleteForever size={26} />
+                    </button>
+                  </th>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </DataContainer>
+        <PageContainer>
+          <button type="button" onClick={() => handePageDown()}>
+            <MdNavigateBefore />
+          </button>
 
-        {pages.map(n => (
-          <NavContainer key={n.pgn} activePg={n.actv}>
-            <Form>
-              <button type="button" onClick={() => handePageNav(n.pgn)}>
-                {n.pgn}
-              </button>
-            </Form>
-          </NavContainer>
-        ))}
+          {pages.map(n => (
+            <NavContainer key={n.pgn} activePg={n.actv}>
+              <Form>
+                <button type="button" onClick={() => handePageNav(n.pgn)}>
+                  {n.pgn}
+                </button>
+              </Form>
+            </NavContainer>
+          ))}
 
-        <button type="button" onClick={() => handlePageUp()}>
-          <MdNavigateNext />
-        </button>
-      </PageContainer>
-    </Container>
+          <button type="button" onClick={() => handlePageUp()}>
+            <MdNavigateNext />
+          </button>
+        </PageContainer>
+      </Container>
+    </>
   );
 }
