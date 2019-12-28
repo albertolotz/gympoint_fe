@@ -47,8 +47,6 @@ export default function EditPlan() {
         price: priceFormated,
         totalPrice: totalPriceFormated,
       };
-
-      console.tron.log(pln);
       setPlans(pln);
     }
     loadPlans();

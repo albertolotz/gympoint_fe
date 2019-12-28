@@ -32,11 +32,13 @@ export default function Registries() {
   const [pages, setPages] = useState([]);
   const [cPages, setCPages] = useState();
   const [q, setTxtSearch] = useState('');
+  const [load, setLoad] = useState(false);
 
   useEffect(() => {
     async function loadRegistries() {
       const response = await api.get('registry', { params: { page, q } });
       // controle de paginação
+      setLoad(false);
       const pgsApi = response.data.pages;
       const countPages = [];
       let pg = 0;
@@ -82,7 +84,7 @@ export default function Registries() {
     }
 
     loadRegistries();
-  }, [page, q]);
+  }, [load, page, q]);
 
   function handlePageUp() {
     if (page < cPages) {
@@ -108,16 +110,17 @@ export default function Registries() {
     // eslint-disable-next-line no-alert
     if (window.confirm(`Confirma a exclusão ?${id}`)) {
       try {
-        await api.delete(`registy/${id}`);
-        toast.warn('Aluno Apagado!');
-        setPage(1);
+        await api.delete(`registry/${id}`);
+        toast.warn('Matricula Apagada!');
+        setLoad(true);
       } catch (err) {
         if (err) {
-          toast.error('Falha na operação!');
+          toast.error(`Falha na operação!${err.response}`);
         }
       }
     }
   }
+
   return (
     <>
       <Container>

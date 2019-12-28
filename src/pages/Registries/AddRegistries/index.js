@@ -67,7 +67,7 @@ export default function EditPlan() {
   }, []);
 
   async function handleAdd({ start_date }) {
-    const dateFormated = format(new Date(start_date), 'dd/MM/yyyy');
+    const dateFormated = parse(start_date, 'dd/MM/yyyy', new Date());
     const dados = {
       student_id: selStd,
       plan_id: selPla,
@@ -101,7 +101,10 @@ export default function EditPlan() {
 
       // calculo termin plano.
       const lengthStartDate = selDta.length;
-      if (isValid(new Date(selDta)) && lengthStartDate === 10) {
+      if (
+        isValid(parse(selDta, 'mm/dd/yyyy', new Date())) &&
+        lengthStartDate === 10
+      ) {
         const calculedFinalRegister = format(
           addMonths(parse(selDta, 'dd/MM/yyyy', new Date()), duration, {
             locale: pt,

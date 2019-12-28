@@ -1,25 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { MdCheck, MdNavigateBefore } from 'react-icons/md';
 import { Form, Input } from '@rocketseat/unform';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
-import { addMonths, isValid, format, parse } from 'date-fns';
+import { addMonths, isValid, format, parse, parseISO } from 'date-fns';
 import pt from 'date-fns/locale/pt-BR';
 import { Container, Content } from './styles';
 import api from '~/services/api';
 import { styles } from './stylesLst';
 
 export default function EditPlan() {
+  const { id } = useParams();
+
   const [student, setStudent] = useState([]);
   const [plan, setPlan] = useState([]);
   const [paramPlan, setparamPlan] = useState();
   const [selStd, setSelStd] = useState();
-  const [selPla, setSelPla] = useState(0);
   const [selDta, setSelDta] = useState('');
   const [dtaCalc, setDtaCalc] = useState('');
   const [ValCalc, setValCalc] = useState(0);
+  const [registry, setRegistry] = useState([]);
+  const [getStuID, setGetStuID] = useState({});
+  const [getPlaID, setGetPlaID] = useState({ label: '', value: 0 });
 
   const schema = Yup.object().shape({
     student_id: Yup.number('Insira um número').required(
@@ -32,6 +36,39 @@ export default function EditPlan() {
       'Insira uma data válida'
     ),
   });
+
+  useEffect(() => {
+    // calculo do valor total
+    if (getPlaID.value > 0) {
+      const { duration, price } = paramPlan.find(p => p.id === getPlaID.value);
+      const formatedTotalPrice = (duration * price).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+      });
+      setValCalc(formatedTotalPrice);
+
+      // calculo termin plano.
+
+      const lengthStartDate = selDta.length;
+
+      if (
+        isValid(parse(selDta, 'mm/dd/yyyy', new Date())) &&
+        lengthStartDate === 10
+      ) {
+        const calculedFinalRegister = format(
+          addMonths(parse(selDta, 'dd/MM/yyyy', new Date()), duration, {
+            locale: pt,
+          }),
+          'dd/MM/yyyy',
+          { locale: pt }
+        );
+        setDtaCalc(calculedFinalRegister);
+      } else {
+        setDtaCalc('??');
+      }
+    }
+  }, [getPlaID, paramPlan, selDta]);
 
   useEffect(() => {
     async function loadLists() {
@@ -61,25 +98,51 @@ export default function EditPlan() {
         };
       });
       setparamPlan(pp);
-    }
 
+      const registyToEdit = await api.get(`registry/${id}`);
+      const r = registyToEdit.data.registries;
+
+      const rgty = {
+        student_id: r.student_id,
+        plan_id: r.plan_id,
+        start_date: format(new Date(r.start_date), 'dd/MM/yyyy'),
+        end_date: format(new Date(r.end_date), 'dd/MM/yyyy'),
+        price: r.price.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+          minimumFractionDigits: 2,
+        }),
+      };
+      const labelStudent = loadOption.find(p => p.value === rgty.student_id);
+      setGetStuID({ label: labelStudent.label, value: rgty.student_id });
+
+      const labelPlan = loadPlans.find(p => p.value === rgty.plan_id);
+      setGetPlaID({ label: labelPlan.label, value: rgty.plan_id });
+      setSelDta(rgty.start_date);
+      setDtaCalc(rgty.end_date);
+      setValCalc(rgty.price);
+
+      setRegistry(rgty);
+    } // end load list
     loadLists();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleAdd({ start_date }) {
-    const dateFormated = format(new Date(start_date), 'dd/MM/yyyy');
+  async function handleEdit({ start_date }) {
+    // const dateFormated = format(new Date(start_date), 'dd/MM/yyyy');
+    const dateFormated = parse(start_date, 'dd/MM/yyyy', new Date());
     const dados = {
-      student_id: selStd,
-      plan_id: selPla,
+      student_id: getStuID.value,
+      plan_id: getPlaID.value,
       start_date: dateFormated,
     };
-    // 2019-11-10T08:00:00-03:00
+
     if (!(await schema.isValid(dados))) {
       toast.error('Dados invalidos');
     } else {
       try {
-        await api.post('registry', dados);
-        toast.success('Matricula realizada com sucesso!');
+        await api.put(`registry/${id}`, dados);
+        toast.success('Matricula Atualizada com sucesso!');
       } catch (err) {
         if (err) {
           toast.error(err.response.data);
@@ -88,41 +151,10 @@ export default function EditPlan() {
     }
   }
 
-  useEffect(() => {
-    // calculo do valor total
-
-    if (selPla > 0) {
-      const { duration, price } = paramPlan.find(p => p.id === selPla);
-      const formatedTotalPrice = (duration * price).toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-        minimumFractionDigits: 2,
-      });
-      setValCalc(formatedTotalPrice);
-
-      // calculo termin plano.
-
-      const lengthStartDate = selDta.length;
-
-      if (isValid(new Date(selDta)) && lengthStartDate === 10) {
-        const calculedFinalRegister = format(
-          addMonths(parse(selDta, 'dd/MM/yyyy', new Date()), duration, {
-            locale: pt,
-          }),
-          'dd/MM/yyyy',
-          { locale: pt }
-        );
-        setDtaCalc(calculedFinalRegister);
-      } else {
-        setDtaCalc('');
-      }
-    }
-  }, [paramPlan, selDta, selPla]);
-
   return (
     <>
       <Container>
-        <h1>Edição de Matriculas</h1>
+        <h1>Edição de xxxMatriculas</h1>
         <div>
           <Link to="/registries">
             <MdNavigateBefore size={22} /> VOLTAR
@@ -135,14 +167,15 @@ export default function EditPlan() {
         </div>
       </Container>
       <Content>
-        <Form id="frm" onSubmit={handleAdd}>
+        <Form id="frm" onSubmit={handleEdit}>
           <span className="label">Aluno</span>
           <Select
             isSearchable="true"
             styles={styles}
             options={student}
             name="name"
-            onChange={e => setSelStd(e.value)}
+            value={getStuID}
+            onChange={e => setGetStuID({ label: e.label, value: e.value })}
           />
           <span className="label">Plano</span>
           <Select
@@ -150,7 +183,8 @@ export default function EditPlan() {
             styles={styles}
             options={plan}
             name="title"
-            onChange={e => setSelPla(e.value)}
+            value={getPlaID}
+            onChange={e => setGetPlaID({ label: e.label, value: e.value })}
           />
 
           <div className="dataColun">
@@ -159,6 +193,7 @@ export default function EditPlan() {
               <Input
                 type="text"
                 name="start_date"
+                value={selDta}
                 onChange={e => setSelDta(e.target.value)}
               />
             </div>

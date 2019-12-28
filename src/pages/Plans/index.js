@@ -24,7 +24,6 @@ export default function Plans() {
           price: priceFormated,
         };
       });
-      console.tron.log(pln);
       setPlans(pln);
     }
     loadPlans();
