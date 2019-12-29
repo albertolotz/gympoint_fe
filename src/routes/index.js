@@ -6,6 +6,7 @@ import Route from './Route';
 import SignIn from '../pages/SignIn';
 import Main from '../pages/Main';
 import Assistance from '../pages/Assistance';
+import AssistanceAnswer from '../pages/Assistance/Answer';
 import Plans from '../pages/Plans';
 import PlansEdit from '../pages/Plans/EditPlan';
 import PlansAdd from '../pages/Plans/AddPlan';
@@ -24,6 +25,11 @@ export default function Routes() {
       <Route path="/main" component={Main} isPrivate />
 
       <Route path="/assistance" component={Assistance} isPrivate />
+      <Route
+        path="/assistanceanswer/:id"
+        component={AssistanceAnswer}
+        isPrivate
+      />
 
       <Route path="/plans" component={Plans} isPrivate />
       <Route path="/plansedit/:id" component={PlansEdit} isPrivate />
