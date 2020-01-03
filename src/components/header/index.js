@@ -1,17 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import logo from '~/assets/logo.png';
 import { Container, Content, Profile } from './styles';
 
 export default function Header() {
   const dispath = useDispatch();
+  const userName = useSelector(state => state.user.profile.name);
+
   return (
     <Container>
       <Content>
         <nav>
           <img src={logo} alt="GymPoint" />
-          <strong>GYMPOINT</strong>
+          <Link id="logoName" to="/main">
+            GYMPOINT
+          </Link>
           <Link to="/students">Alunos</Link>
           <Link to="/plans">Planos</Link>
           <Link to="/registries">Matriculas</Link>
@@ -21,7 +25,7 @@ export default function Header() {
         <aside>
           <Profile>
             <div>
-              <strong>Administrador</strong>
+              <strong>{userName}</strong>
               <button
                 onClick={() => dispath({ type: '@auth/SIGN_OUT' })}
                 type="button"

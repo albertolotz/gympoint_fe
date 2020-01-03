@@ -1,8 +1,13 @@
 import React from 'react';
-// import api from '~/services/api';
-
-// import { Container } from './styles';
+import img from '~/assets/img.jpg';
+import { Container } from './styles';
 
 export default function Main() {
-  return <h1>Pagina incial</h1>;
+  return (
+    <>
+      <Container>
+        <img src={img} alt="" />
+      </Container>
+    </>
+  );
 }

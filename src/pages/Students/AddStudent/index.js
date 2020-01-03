@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MdCheck, MdNavigateBefore } from 'react-icons/md';
 import { Form, Input } from '@rocketseat/unform';
-import { isValid, differenceInYears, isPast } from 'date-fns';
+import { isValid, differenceInYears, isPast, parse } from 'date-fns';
+import pt from 'date-fns/locale/pt-BR';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import { Container, Content } from './styles';
@@ -15,7 +16,7 @@ export default function EditStudent() {
       .email('Insira um email válido')
       .required('Email é obrigatório'),
     gender: Yup.string(1, 'Insira M ou F').required('Insira M ou F'),
-    birth_date: Yup.date('Insira uma data Válida dd/mm/yyyy').required(
+    birth_date: Yup.string('Insira uma data Válida dd/mm/yyyy').required(
       'Data Nascimento é Obrigatória'
     ),
     weight: Yup.number('Insira um número')
@@ -26,29 +27,42 @@ export default function EditStudent() {
       .positive('Insira um número positivo'),
   });
 
-  function handeCalculateAge(value) {
-    const inputBirth = value;
-    const lengthInputBirth = inputBirth.length;
+  const [dateBirth, setDateBirth] = useState('');
+
+  const ageStudent = useMemo(() => {
+    const inputBirth = parse(dateBirth, 'mm/dd/yyyy', new Date(), {
+      locale: pt,
+    });
+    const lengthInputBirth = dateBirth.length;
 
     if (
       lengthInputBirth === 10 &&
       isValid(new Date(inputBirth)) &&
       isPast(new Date(inputBirth))
     ) {
-      const newAge = differenceInYears(new Date(), new Date(inputBirth));
-      document.querySelector('input[name=age]').value = newAge;
-    } else {
-      document.querySelector('input[name=age]').value = 'Invalido';
+      return differenceInYears(new Date(), new Date(inputBirth));
     }
-  }
+    return 'Invalido';
+  }, [dateBirth]);
 
   async function handleAdd(data) {
+    const formatedData = {
+      birth_date: parse(data.birth_date, 'dd/MM/yyyy', new Date(), {
+        locale: pt,
+      }),
+      name: data.name,
+      email: data.email,
+      gender: data.gender,
+      weight: data.weight,
+      height: data.height,
+    };
+
     try {
-      await api.post(`students`, data);
+      await api.post(`students`, formatedData);
       toast.success('Cadastro realizado com sucesso!');
     } catch (err) {
       if (err) {
-        toast.error(`Falha no Cadastro, verifique os dados registrados!${err}`);
+        toast.error(`Falha no Cadastro, verifique:${err.response.data.error}`);
       }
     }
   }
@@ -81,12 +95,13 @@ export default function EditStudent() {
               <Input
                 type="text"
                 name="birth_date"
-                onChange={e => handeCalculateAge(e.target.value)}
+                value={dateBirth}
+                onChange={e => setDateBirth(e.target.value)}
               />
             </div>
             <div className="detals">
               <span className="label">Idade</span>
-              <Input disabled type="text" name="age" />
+              <Input disabled type="text" name="age" value={ageStudent} />
             </div>
             <div className="detals">
               <span className="label">Sexo(M/F)</span>

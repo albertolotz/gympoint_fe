@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { MdCheck, MdNavigateBefore } from 'react-icons/md';
 import { Form, Input } from '@rocketseat/unform';
@@ -18,51 +18,40 @@ export default function EditPlan() {
       .positive('Insira um número positivo'),
   });
 
-  const { id } = useParams();
-  const [plans, setPlans] = useState([]);
+  const { id } = useParams(); // id do plano que será editado
+  const [plans, setPlans] = useState([]); // dados do plano
+  const [price, setPrice] = useState(0); // preco unitario
+  const [duration, setDuration] = useState(0); // duração
 
   useEffect(() => {
     async function loadPlans() {
       const response = await api.get(`plans/${id}`);
-
+      // pl é u plano, feito para facilitar a mensão as variaveis
       const pl = response.data;
 
       const priceFormated = pl.price.toLocaleString('US', {
         minimumFractionDigits: 2,
       });
 
-      const totalPriceFormated = (pl.price * pl.duration).toLocaleString(
-        'pt-BR',
-        {
-          style: 'currency',
-          currency: 'BRL',
-          minimumFractionDigits: 2,
-        }
-      );
-
       const pln = {
         id: pl.id,
         title: pl.title,
-        duration: pl.duration,
-        price: priceFormated,
-        totalPrice: totalPriceFormated,
+        duration: setDuration(pl.duration),
+        price: setPrice(priceFormated),
       };
       setPlans(pln);
     }
     loadPlans();
   }, [id]);
 
-  function handeCalculatePrice() {
-    const inputPrice = document.querySelector('input[name=duration]').value;
-    const totalDuration = document.querySelector('input[name=price]').value;
-
-    const newTotalPrice = (totalDuration * inputPrice).toLocaleString('pt-BR', {
+  const priceCalculed = useMemo(() => {
+    const newTotalPrice = (duration * price).toLocaleString('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
     });
-    document.querySelector('input[name=totalPrice]').value = newTotalPrice;
-  }
+    return newTotalPrice;
+  }, [price, duration]);
 
   async function handleEdit(data) {
     try {
@@ -71,7 +60,7 @@ export default function EditPlan() {
     } catch (err) {
       if (err) {
         toast.error(
-          `Falha na alteração, verifique os dados registrados!${err}`
+          `Falha na alteração, verifique: ${err.response.data.error}`
         );
       }
     }
@@ -106,18 +95,29 @@ export default function EditPlan() {
             <div className="detals">
               <span className="label">Duração (Meses)</span>
               <Input
-                onChange={handeCalculatePrice}
+                value={duration}
+                onChange={e => setDuration(e.target.value)}
                 type="text"
                 name="duration"
               />
             </div>
             <div className="detals">
               <span className="label">Preço Mensal</span>
-              <Input onChange={handeCalculatePrice} type="text" name="price" />
+              <Input
+                value={price}
+                onChange={e => setPrice(e.target.value)}
+                type="text"
+                name="price"
+              />
             </div>
             <div className="detals">
               <span className="label">Preço Total</span>
-              <Input disabled type="text" name="totalPrice" />
+              <Input
+                disabled
+                type="text"
+                name="totalPrice"
+                value={priceCalculed}
+              />
             </div>
           </div>
         </Form>

@@ -7,6 +7,7 @@ import api from '~/services/api';
 export default function Assistance() {
   const [assistence, setAssistence] = useState([]);
   const [load, setLoad] = useState(false);
+
   useEffect(() => {
     async function loadAssistances() {
       setLoad(false);

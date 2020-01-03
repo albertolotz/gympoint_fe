@@ -27,9 +27,9 @@ export const Content = styled.div`
       margin-right: 10px;
       width: 60px;
     }
-
-    strong {
-      font-size: 18px;
+    a#logoName {
+      font-size: 20px;
+      font-weight: bold;
       color: #ee4d64;
       padding-right: 20px;
       margin-right: 10px;

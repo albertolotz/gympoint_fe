@@ -27,18 +27,18 @@ import {
 } from './styles';
 
 export default function Registries() {
-  const [register, setRegister] = useState([]);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState([]);
-  const [cPages, setCPages] = useState();
-  const [q, setTxtSearch] = useState('');
-  const [load, setLoad] = useState(false);
+  const [register, setRegister] = useState([]); // matriculas recebidas da API
+  const [page, setPage] = useState(1); // pagina atual
+  const [pages, setPages] = useState([]); // relação de paginas com informaão de qual pagina esta ativa
+  const [cPages, setCPages] = useState(); // numero de paginas recebidas da api
+  const [q, setTxtSearch] = useState(''); // q is a query param to select a fild at data.
+  const [reload, setreLoad] = useState(false);
 
   useEffect(() => {
     async function loadRegistries() {
       const response = await api.get('registry', { params: { page, q } });
       // controle de paginação
-      setLoad(false);
+      setreLoad(false);
       const pgsApi = response.data.pages;
       const countPages = [];
       let pg = 0;
@@ -84,7 +84,7 @@ export default function Registries() {
     }
 
     loadRegistries();
-  }, [load, page, q]);
+  }, [page, q, reload]);
 
   function handlePageUp() {
     if (page < cPages) {
@@ -107,16 +107,16 @@ export default function Registries() {
   }
 
   async function handleDelete(id) {
+    const pageToStay = register.length === 1 && page > 1 ? page - 1 : page;
     // eslint-disable-next-line no-alert
     if (window.confirm(`Confirma a exclusão ?${id}`)) {
       try {
         await api.delete(`registry/${id}`);
         toast.warn('Matricula Apagada!');
-        setLoad(true);
+        // eslint-disable-next-line no-unused-expressions
+        pageToStay === page ? setreLoad(true) : setPage(pageToStay);
       } catch (err) {
-        if (err) {
-          toast.error(`Falha na operação!${err.response}`);
-        }
+        toast.error(`Falha na operação: ${err}`);
       }
     }
   }

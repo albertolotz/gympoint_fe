@@ -22,16 +22,19 @@ import {
 } from './styles';
 
 export default function Students() {
-  const [student, setStudent] = useState([]);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState([]);
-  const [cPages, setCPages] = useState();
-  const [q, setTxtSearch] = useState('');
+  const [student, setStudent] = useState([]); // composição da página
+  const [page, setPage] = useState(1); // é a página atual sendo visualizada
+  const [pages, setPages] = useState([]); // é a relação da páginas com seu status utilizada para setar a cor da pg selecionada
+  const [cPages, setCPages] = useState(); // é o numero de paginas recebida da API
+  const [q, setTxtSearch] = useState(''); // q is a query param to select a fild at data.
 
   useEffect(() => {
     async function loadStudents() {
       const response = await api.get('students', { params: { page, q } });
       const pgsApi = response.data.pages;
+      // cria a quantiade de páginas com referencia recebida da API
+      // devido ao prazo apertado não foi criado um controle de numero máximo
+      // de páginas por que é apresentada no rodapé da página.
       const countPages = [];
       let pg = 0;
       do {
@@ -39,7 +42,7 @@ export default function Students() {
         countPages.push(pg);
       } while (pg < pgsApi);
 
-      const t = countPages.map(pgn => {
+      const listPageStatus = countPages.map(pgn => {
         const pgActv = pgn === page;
         return {
           pgn,
@@ -48,12 +51,12 @@ export default function Students() {
       });
 
       setCPages(pgsApi);
-      setPages(t);
+      setPages(listPageStatus);
       setStudent(response.data.students);
     }
 
     loadStudents();
-  }, [page, q]);
+  }, [page, q, student]);
 
   function handlePageUp() {
     if (page < cPages) {
@@ -76,12 +79,15 @@ export default function Students() {
   }
 
   async function handleDelete(id) {
+    // calculo para saber qual página fica apos apagar um registro.
+    const pageToStay = student.length === 1 && page > 1 ? page - 1 : page;
+
     // eslint-disable-next-line no-alert
     if (window.confirm(`Confirma a exclusão ?${id}`)) {
       try {
         await api.delete(`students/${id}`);
         toast.warn('Aluno Apagado!');
-        setPage(1);
+        setPage(pageToStay);
       } catch (err) {
         if (err) {
           toast.error('Falha na operação!');

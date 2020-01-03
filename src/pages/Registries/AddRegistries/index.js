@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Select from 'react-select';
 import { Link } from 'react-router-dom';
 import { MdCheck, MdNavigateBefore } from 'react-icons/md';
@@ -18,8 +18,6 @@ export default function EditPlan() {
   const [selStd, setSelStd] = useState();
   const [selPla, setSelPla] = useState(0);
   const [selDta, setSelDta] = useState('');
-  const [dtaCalc, setDtaCalc] = useState('');
-  const [ValCalc, setValCalc] = useState(0);
 
   const schema = Yup.object().shape({
     student_id: Yup.number('Insira um número').required(
@@ -66,30 +64,7 @@ export default function EditPlan() {
     loadLists();
   }, []);
 
-  async function handleAdd({ start_date }) {
-    const dateFormated = parse(start_date, 'dd/MM/yyyy', new Date());
-    const dados = {
-      student_id: selStd,
-      plan_id: selPla,
-      start_date: dateFormated,
-    };
-    // 2019-11-10T08:00:00-03:00
-    if (!(await schema.isValid(dados))) {
-      toast.error('Dados invalidos');
-    } else {
-      try {
-        await api.post('registry', dados);
-        toast.success('Matricula realizada com sucesso!');
-      } catch (err) {
-        if (err) {
-          toast.error(err.response.data);
-        }
-      }
-    }
-  }
-
-  useEffect(() => {
-    // calculo do valor total
+  const ValCalc = useMemo(() => {
     if (selPla > 0) {
       const { duration, price } = paramPlan.find(p => p.id === selPla);
       const formatedTotalPrice = (duration * price).toLocaleString('pt-BR', {
@@ -97,10 +72,15 @@ export default function EditPlan() {
         currency: 'BRL',
         minimumFractionDigits: 2,
       });
-      setValCalc(formatedTotalPrice);
+      return formatedTotalPrice;
+    }
+    return 0;
+  }, [paramPlan, selPla]);
 
-      // calculo termin plano.
+  const dtaCalc = useMemo(() => {
+    if (selPla > 0) {
       const lengthStartDate = selDta.length;
+      const { duration } = paramPlan.find(p => p.id === selPla);
       if (
         isValid(parse(selDta, 'mm/dd/yyyy', new Date())) &&
         lengthStartDate === 10
@@ -112,12 +92,34 @@ export default function EditPlan() {
           'dd/MM/yyyy',
           { locale: pt }
         );
-        setDtaCalc(calculedFinalRegister);
-      } else {
-        setDtaCalc('');
+        return calculedFinalRegister;
+      }
+      return '';
+    }
+    return '';
+  }, [paramPlan, selDta, selPla]);
+
+  async function handleAdd({ start_date }) {
+    const dateFormated = parse(start_date, 'dd/MM/yyyy', new Date());
+    const dados = {
+      student_id: selStd,
+      plan_id: selPla,
+      start_date: dateFormated,
+    };
+
+    if (!(await schema.isValid(dados))) {
+      toast.error('Dados invalidos');
+    } else {
+      try {
+        await api.post('registry', dados);
+        toast.success('Matricula realizada com sucesso!');
+      } catch (err) {
+        if (err) {
+          toast.error(err.response.data.error);
+        }
       }
     }
-  }, [paramPlan, selDta, selPla]);
+  }
 
   return (
     <>

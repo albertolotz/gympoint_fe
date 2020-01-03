@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { MdCheck, MdNavigateBefore } from 'react-icons/md';
 import { Form, Input } from '@rocketseat/unform';
-import { format, parseISO, isValid, differenceInYears, isPast } from 'date-fns';
+import {
+  format,
+  parseISO,
+  isValid,
+  differenceInYears,
+  isPast,
+  parse,
+} from 'date-fns';
+import pt from 'date-fns/locale/pt-BR';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import { Container, Content } from './styles';
@@ -15,7 +23,7 @@ export default function EditStudent() {
       .email('Insira um email válido')
       .required('Email é obrigatório'),
     gender: Yup.string(1, 'Insira M ou F').required('Insira M ou F'),
-    birth_date: Yup.date('Insira uma data Válida dd/mm/yyyy').required(
+    birth_date: Yup.string('Insira uma data Válida dd/mm/yyyy').required(
       'Data Nascimento é Obrigatória'
     ),
     weight: Yup.number('Insira um número')
@@ -27,16 +35,18 @@ export default function EditStudent() {
   });
 
   const { id } = useParams();
-  const [student, setStudent] = useState([]);
+  const [student, setStudent] = useState([]); // dados do aluno recebido da API
+  const [dateBirth, setDateBirth] = useState('');
 
   useEffect(() => {
     async function loadStudent() {
       const response = await api.get(`students/${id}`);
+      // s = representa student
       const s = response.data;
       const std = {
         name: s.name,
         email: s.email,
-        birth_date: format(parseISO(s.birth_date), 'dd/MM/yyyy'),
+        birth_date: setDateBirth(format(parseISO(s.birth_date), 'dd/MM/yyyy')),
         age: s.age,
         gender: s.gender,
         weight: s.weight,
@@ -48,30 +58,41 @@ export default function EditStudent() {
     loadStudent();
   }, [id]);
 
-  function handeCalculateAge(value) {
-    const inputBirth = value;
-    const lengthInputBirth = inputBirth.length;
+  const ageStudent = useMemo(() => {
+    const inputBirth = parse(dateBirth, 'mm/dd/yyyy', new Date(), {
+      locale: pt,
+    });
+    const lengthInputBirth = dateBirth.length;
 
     if (
       lengthInputBirth === 10 &&
       isValid(new Date(inputBirth)) &&
       isPast(new Date(inputBirth))
     ) {
-      const newAge = differenceInYears(new Date(), new Date(inputBirth));
-      document.querySelector('input[name=age]').value = newAge;
-    } else {
-      document.querySelector('input[name=age]').value = 'Invalido';
+      return differenceInYears(new Date(), new Date(inputBirth));
     }
-  }
+    return 'Invalido';
+  }, [dateBirth]);
 
   async function handleEdit(data) {
+    const formatedData = {
+      birth_date: parse(data.birth_date, 'dd/MM/yyyy', new Date(), {
+        locale: pt,
+      }),
+      name: data.name,
+      email: data.email,
+      gender: data.gender,
+      weight: data.weight,
+      height: data.height,
+    };
+
     try {
-      await api.put(`students/${id}`, data);
+      await api.put(`students/${id}`, formatedData);
       toast.success('Alteração realizada com sucesso!');
     } catch (err) {
       if (err) {
         toast.error(
-          `Falha na alteração, verifique os dados registrados!${err}`
+          `Falha na alteração, verifique: ${err.response.data.error}`
         );
       }
     }
@@ -110,12 +131,13 @@ export default function EditStudent() {
               <Input
                 type="text"
                 name="birth_date"
-                onChange={e => handeCalculateAge(e.target.value)}
+                value={dateBirth}
+                onChange={e => setDateBirth(e.target.value)}
               />
             </div>
             <div className="detals">
               <span className="label">Idade</span>
-              <Input disabled type="text" name="age" />
+              <Input disabled type="text" name="age" value={ageStudent} />
             </div>
             <div className="detals">
               <span className="label">Sexo(M/F)</span>

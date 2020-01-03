@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MdCheck, MdNavigateBefore } from 'react-icons/md';
 import { Form, Input } from '@rocketseat/unform';
@@ -18,17 +18,17 @@ export default function EditPlan() {
       .positive('Insira um número positivo'),
   });
 
-  function handeCalculatePrice() {
-    const inputPrice = document.querySelector('input[name=duration]').value;
-    const totalDuration = document.querySelector('input[name=price]').value;
+  const [price, setPrice] = useState(0); // preco unitario
+  const [duration, setDuration] = useState(0); // duração
 
-    const newTotalPrice = (totalDuration * inputPrice).toLocaleString('pt-BR', {
+  const priceCalculed = useMemo(() => {
+    const newTotalPrice = (duration * price).toLocaleString('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
     });
-    document.querySelector('input[name=totalPrice]').value = newTotalPrice;
-  }
+    return newTotalPrice;
+  }, [price, duration]);
 
   async function handleAdd(data) {
     try {
@@ -36,7 +36,9 @@ export default function EditPlan() {
       toast.success('Cadastro realizado com sucesso!');
     } catch (err) {
       if (err) {
-        toast.error(`Falha no adastro, verifique os dados registrados!${err}`);
+        toast.error(
+          `Falha na alteração, verifique: ${err.response.data.error}`
+        );
       }
     }
   }
@@ -65,18 +67,29 @@ export default function EditPlan() {
             <div className="detals">
               <span className="label">Duração (Meses)</span>
               <Input
-                onChange={handeCalculatePrice}
+                value={duration}
+                onChange={e => setDuration(e.target.value)}
                 type="text"
                 name="duration"
               />
             </div>
             <div className="detals">
               <span className="label">Preço Mensal</span>
-              <Input onChange={handeCalculatePrice} type="text" name="price" />
+              <Input
+                value={price}
+                onChange={e => setPrice(e.target.value)}
+                type="text"
+                name="price"
+              />
             </div>
             <div className="detals">
               <span className="label">Preço Total</span>
-              <Input disabled type="text" name="totalPrice" />
+              <Input
+                disabled
+                type="text"
+                name="totalPrice"
+                value={priceCalculed}
+              />
             </div>
           </div>
         </Form>

@@ -7,7 +7,10 @@ import api from '~/services/api';
 
 export default function Plans() {
   const [plans, setPlans] = useState([]);
+  const [reLoad, setReLoad] = useState(false);
+
   useEffect(() => {
+    setReLoad(false);
     async function loadPlans() {
       const response = await api.get('plans', {});
 
@@ -27,9 +30,11 @@ export default function Plans() {
       setPlans(pln);
     }
     loadPlans();
-  }, []);
+  }, [reLoad]);
 
   async function handleDelete(id) {
+    // neste caso o plano não é apagado fisicamente, apenas setado como inativo.
+    // futuras versões podem ser exibidos os planos ativos e inativos podendo reativar algum plano
     const status = { active: false };
 
     // eslint-disable-next-line no-alert
@@ -37,10 +42,10 @@ export default function Plans() {
       try {
         await api.put(`plans/${id}/onoff`, status);
         toast.warn('Plano desativado!');
-        // atualiza listagem
+        setReLoad(true);
       } catch (err) {
         if (err) {
-          toast.error('Falha na operação!');
+          toast.error(`Falha na operação: ${err.response.data.error}`);
         }
       }
     }
